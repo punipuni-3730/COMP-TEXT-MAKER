@@ -15,16 +15,20 @@
       margin-top: 20px;
       background: transparent;
     }
-    input, button, select {
+    textarea, button, select, input[type="color"] {
       margin: 10px;
       padding: 10px;
       font-size: 18px;
+    }
+    textarea {
+      width: 300px;
+      height: 100px;
     }
   </style>
 </head>
 <body>
   <h1>圧縮文字メーカー</h1>
-  <input type="text" id="textInput" placeholder="ここに文字を入力">
+  <textarea id="textInput" placeholder="ここに文字を入力"></textarea>
   <br>
   <label>文字色: <input type="color" id="colorInput" value="#000000"></label>
   <br>
@@ -43,6 +47,7 @@
   <button onclick="downloadImage()">ダウンロード</button>
   <br>
   <canvas id="canvas" width="300" height="300"></canvas>
+  <p>Created by しゃけ <a href="https://twitter.com/arimagawa_m" target="_blank">@arimagawa_m</a></p>
 
   <script>
     async function generateImage() {
@@ -58,31 +63,41 @@
 
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+      const lines = text.split('\n').filter(line => line.trim() !== '');
+      const lineCount = lines.length;
+
+      const areaHeight = canvas.height / lineCount;
+
       const baseFontSize = 100;
-      ctx.font = `bold ${baseFontSize}px ${fontFamily}`;
+      ctx.fillStyle = color;
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      const metrics = ctx.measureText(text);
-      const textWidth = metrics.width;
-      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+      for (let i = 0; i < lineCount; i++) {
+        const line = lines[i];
 
-      const scaleX = canvas.width / textWidth;
-      const scaleY = canvas.height / textHeight;
+        ctx.save();
+        ctx.font = `bold ${baseFontSize}px ${fontFamily}`;
+        const metrics = ctx.measureText(line);
+        const textWidth = metrics.width;
+        const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
 
-      ctx.save();
-      ctx.translate(canvas.width / 2, canvas.height / 2);
-      ctx.scale(scaleX, scaleY);
-      ctx.fillStyle = color;
-      ctx.fillText(text, 0, 0);
-      ctx.restore();
+        const scaleX = canvas.width / textWidth;
+        const scaleY = areaHeight / textHeight;
+
+        ctx.translate(canvas.width / 2, areaHeight * (i + 0.5));
+        ctx.scale(scaleX, scaleY);
+        ctx.fillText(line, 0, 0);
+
+        ctx.restore();
+      }
     }
 
     function downloadImage() {
       const canvas = document.getElementById('canvas');
       const link = document.createElement('a');
       link.href = canvas.toDataURL('image/png');
-      link.download = 'text_image.png';
+      link.download = 'comptext.png';
       link.click();
     }
   </script>
