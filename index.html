@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>圧縮文字メーカー</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: sans-serif;
+      padding: 20px;
+      text-align: center;
+    }
+    #canvas {
+      border: 1px solid #ccc;
+      margin-top: 20px;
+      background: transparent;
+    }
+    input, button, select {
+      margin: 10px;
+      padding: 10px;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>圧縮文字メーカー</h1>
+  <input type="text" id="textInput" placeholder="ここに文字を入力">
+  <br>
+  <label>文字色: <input type="color" id="colorInput" value="#000000"></label>
+  <br>
+  <label>フォント:
+    <select id="fontSelect">
+      <option value="sans-serif">Sans-serif</option>
+      <option value="serif">Serif</option>
+      <option value="monospace">Monospace</option>
+      <option value="cursive">Cursive</option>
+      <option value="fantasy">Fantasy</option>
+      <option value="'Noto Sans JP', sans-serif">Noto Sans JP</option>
+    </select>
+  </label>
+  <br>
+  <button onclick="generateImage()">生成</button>
+  <button onclick="downloadImage()">ダウンロード</button>
+  <br>
+  <canvas id="canvas" width="300" height="300"></canvas>
+
+  <script>
+    async function generateImage() {
+      const text = document.getElementById('textInput').value;
+      const color = document.getElementById('colorInput').value;
+      const fontFamily = document.getElementById('fontSelect').value;
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      if (fontFamily.includes('Noto Sans JP')) {
+        await document.fonts.load(`100px ${fontFamily}`);
+      }
+
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const baseFontSize = 100;
+      ctx.font = `bold ${baseFontSize}px ${fontFamily}`;
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+
+      const metrics = ctx.measureText(text);
+      const textWidth = metrics.width;
+      const textHeight = metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent;
+
+      const scaleX = canvas.width / textWidth;
+      const scaleY = canvas.height / textHeight;
+
+      ctx.save();
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.scale(scaleX, scaleY);
+      ctx.fillStyle = color;
+      ctx.fillText(text, 0, 0);
+      ctx.restore();
+    }
+
+    function downloadImage() {
+      const canvas = document.getElementById('canvas');
+      const link = document.createElement('a');
+      link.href = canvas.toDataURL('image/png');
+      link.download = 'text_image.png';
+      link.click();
+    }
+  </script>
+</body>
+</html>
